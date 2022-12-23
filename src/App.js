@@ -3,31 +3,26 @@ import Content from "./Content";
 import Footer from "./Footer";
 import styles from "./App.module.scss";
 import { useState } from "react";
+import AddItem from "./AddItem";
+import SearchItem from "./SearchItem";
 
 function App() {
-  const [items, setItems] = useState([
-    {
-      id: 1,
-      checked: false,
-      item: "Lorem ipsum dolor sit amet consectetur adipisicing.",
-    },
-    {
-      id: 2,
-      checked: true,
-      item: "Lorem ipsum dolor sit amet.",
-    },
-    {
-      id: 3,
-      checked: false,
-      item: "Lorem ipsum dolor sit amet consectetur.",
-    },
-    {
-      id: 4,
-      checked: false,
-      item: "Item 4",
-    },
-  ]);
+  const [items, setItems] = useState(
+    JSON.parse(localStorage.getItem("shopping_list"))
+  );
+  const [newItem, setNewItem] = useState("");
+  const [search, setSearch] = useState("");
 
+  const setAndSaveItems = (newItems) => {
+    setItems(newItems);
+    localStorage.setItem("shopping_list", JSON.stringify(newItems));
+  };
+  const addItem = (item) => {
+    const id = items.length ? items[items.length - 1].id + 1 : 1;
+    const theNewItem = { id, checked: false, item };
+    const listItems = [...items, theNewItem];
+    setAndSaveItems(listItems);
+  };
   const handleCheck = (id) => {
     const listItems = items.map((item) => {
       if (item.id === id) {
@@ -35,21 +30,36 @@ function App() {
       }
       return item;
     });
-    setItems(listItems);
-    localStorage.setItem("shopping_list", JSON.stringify(listItems));
+    setAndSaveItems(listItems);
   };
 
   const handleDelete = (id) => {
     const listItems = items.filter((item) => item.id !== id);
-    setItems(listItems);
-    localStorage.setItem("shopping_list", JSON.stringify(listItems));
+    setAndSaveItems(listItems);
   };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!newItem) return;
+    addItem(newItem);
+    setNewItem("");
+  };
+
+  const searchedList = items.filter((item) => {
+    return item.item.toLowerCase().includes(search.toLowerCase());
+  });
 
   return (
     <div className={styles.app}>
       <Header title="Groceries" />
+      <AddItem
+        newItem={newItem}
+        setNewItem={setNewItem}
+        handleSubmit={handleSubmit}
+      />
+      <SearchItem search={search} setSearch={setSearch} />
       <Content
-        items={items}
+        items={searchedList}
         handleCheck={handleCheck}
         handleDelete={handleDelete}
       />
